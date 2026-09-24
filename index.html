@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Fechamento & Gestão</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: Inter, sans-serif; }
+    input, select, button { font-size: 16px; }
+  </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+</head>
+
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<header class="bg-slate-900 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 py-5">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-extrabold">Sistema de Fechamento & Gestão</h1>
+        <p class="text-slate-300 mt-1">Painel Operacional com Rodrigo</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <button onclick="carregarDadosExemplo()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold">
+          Carregar Exemplo Padrão (Rodrigo)
+        </button>
+        <button onclick="limparTudo()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold">
+          Limpar Dados
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto p-4">
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <section class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Cadastrar Funcionário</h2>
+        <div class="grid gap-3">
+          <input id="funcNome" type="text" placeholder="Nome" class="border rounded-lg p-3">
+          <input id="funcCargo" type="text" placeholder="Cargo" class="border rounded-lg p-3">
+          <input id="funcSalario" type="number" step="0.01" placeholder="Salário Base (R$)" class="border rounded-lg p-3">
+          <button onclick="adicionarFuncionarioManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg p-3 font-bold">
+            Cadastrar Funcionário
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Registrar Compra (Cliente)</h2>
+        <div class="grid gap-3">
+          <input id="cliNome" type="text" placeholder="Nome do Cliente" class="border rounded-lg p-3">
+          <input id="cliItem" type="text" placeholder="Item / Serviço" class="border rounded-lg p-3">
+          <input id="cliValor" type="number" step="0.01" placeholder="Valor (R$)" class="border rounded-lg p-3">
+          <label class="font-semibold text-sm">Mês de referência</label>
+          <input id="cliMes" type="month" value="2026-06" class="border rounded-lg p-3">
+          <button onclick="adicionarCompraClienteManual()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-3 font-bold">
+            Registrar Compra
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Folha & Despesas</h2>
+
+        <div class="space-y-3">
+          <h3 class="font-bold text-slate-700">Fechar Folha</h3>
+
+          <select id="folhaFuncId" class="border rounded-lg p-3 w-full">
+            <option value="">Selecione o funcionário</option>
+          </select>
+
+          <input id="folhaHE" type="number" step="0.01" placeholder="Horas Extras" class="border rounded-lg p-3 w-full">
+          <input id="folhaDesc" type="number" step="0.01" placeholder="Descontos (R$)" class="border rounded-lg p-3 w-full">
+          <input id="folhaAdic" type="number" step="0.01" placeholder="Adicionais (R$)" class="border rounded-lg p-3 w-full">
+
+          <label class="font-semibold text-sm">Mês da folha</label>
+          <input id="folhaMes" type="month" value="2026-06" class="border rounded-lg p-3 w-full">
+
+          <button onclick="fecharFolhaManual()" class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-3 font-bold w-full">
+            Processar Folha
+          </button>
+        </div>
+
+        <hr class="my-5">
+
+        <div class="space-y-3">
+          <h3 class="font-bold text-slate-700">Adicionar Despesa</h3>
+
+          <input id="respCategoria" type="text" placeholder="Categoria da despesa" class="border rounded-lg p-3 w-full">
+          <input id="respValor" type="number" step="0.01" placeholder="Valor (R$)" class="border rounded-lg p-3 w-full">
+
+          <label class="font-semibold text-sm">Mês da despesa</label>
+          <input id="respMes" type="month" value="2026-06" class="border rounded-lg p-3 w-full">
+
+          <button onclick="adicionarDespesaManual()" class="bg-orange-600 hover:bg-orange-700 text-white rounded-lg p-3 font-bold w-full">
+            Adicionar Despesa
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-bold">Relatório de Fechamento</h2>
+            <p class="text-slate-500">Mês: <span id="labelMesRef" class="font-bold">2026-06</span></p>
+          </div>
+          <input id="mesRelatorio" type="month" value="2026-06" onchange="calcularFechamento()" class="border rounded-lg p-2">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <div class="bg-emerald-50 rounded-xl p-4">
+            <p class="text-sm text-slate-600">Total Receitas</p>
+            <p id="resTotalReceitas" class="text-xl font-extrabold text-emerald-700">R$ 0,00</p>
+          </div>
+          <div class="bg-red-50 rounded-xl p-4">
+            <p class="text-sm text-slate-600">Total Gastos</p>
+            <p id="resTotalGastos" class="text-xl font-extrabold text-red-700">R$ 0,00</p>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-4">
+            <p class="text-sm text-slate-600">Lucro Líquido</p>
+            <p id="resLucroLiquido" class="text-xl font-extrabold text-blue-700">R$ 0,00</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Clientes / Receitas</h2>
+        <div id="listaClientesRelatorio" class="space-y-2"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Funcionários</h2>
+        <div id="listaFuncionarios" class="space-y-2"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-xl font-bold mb-4">Folhas & Despesas</h2>
+        <div id="listaFolhasDespesas" class="space-y-2"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const CHAVE_STORAGE = "sistema_fechamento_rodrigo_v3";
+
+let estado = {
+  funcionarios: [],
+  clientes: [],
+  folhas: [],
+  transacoes: []
+};
+
+function salvarDados() {
+  localStorage.setItem(CHAVE_STORAGE, JSON.stringify(estado));
+}
+
+function carregarDadosSalvos() {
+  try {
+    const salvo = localStorage.getItem(CHAVE_STORAGE);
+    if (!salvo) return false;
+
+    const dados = JSON.parse(salvo);
+
+    estado = {
+      funcionarios: Array.isArray(dados.funcionarios) ? dados.funcionarios : [],
+      clientes: Array.isArray(dados.clientes) ? dados.clientes : [],
+      folhas: Array.isArray(dados.folhas) ? dados.folhas : [],
+      transacoes: Array.isArray(dados.transacoes) ? dados.transacoes : []
+    };
+
+    return true;
+  } catch (erro) {
+    console.error(erro);
+    return false;
+  }
+}
+
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function escapeHTML(texto) {
+  return String(texto ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function mostrarToast(mensagem, tipo = "sucesso") {
+  const div = document.createElement("div");
+  const classe = tipo === "erro" ? "bg-red-600" : "bg-emerald-600";
+
+  div.className = `${classe} text-white px-4 py-3 rounded-xl shadow-lg font-semibold`;
+  div.textContent = mensagem;
+
+  document.getElementById("toastContainer").appendChild(div);
+
+  setTimeout(() => div.remove(), 3000);
+}
+
+function adicionarFuncionarioManual() {
+  const nome = document.getElementById("funcNome").value.trim();
+  const cargo = document.getElementById("funcCargo").value.trim();
+  const salarioBase = Number(document.getElementById("funcSalario").value);
+
+  if (!nome || !cargo || !salarioBase || salarioBase <= 0) {
+    mostrarToast("Preencha nome, cargo e salário corretamente.", "erro");
+    return;
+  }
+
+  const novoId = estado.funcionarios.length
+    ? Math.max(...estado.funcionarios.map(f => Number(f.id) || 0)) + 1
+    : 1;
+
+  estado.funcionarios.push({ id: novoId, nome, cargo, salarioBase });
+
+  document.getElementById("funcNome").value = "";
+  document.getElementById("funcCargo").value = "";
+  document.getElementById("funcSalario").value = "";
+
+  salvarDados();
+  atualizarTela();
+  mostrarToast("Funcionário cadastrado com sucesso!");
+}
+
+function adicionarCompraClienteManual() {
+  const nomeCliente = document.getElementById("cliNome").value.trim();
+  const itemComprado = document.getElementById("cliItem").value.trim();
+  const valorGasto = Number(document.getElementById("cliValor").value);
+  const mesReferencia = document.getElementById("cliMes").value;
+
+  if (!nomeCliente || !itemComprado || !valorGasto || valorGasto <= 0 || !mesReferencia) {
+    mostrarToast("Preencha todos os dados da compra.", "erro");
+    return;
+  }
+
+  estado.clientes.push({ nomeCliente, itemComprado, valorGasto, mesReferencia });
+
+  document.getElementById("cliNome").value = "";
+  document.getElementById("cliItem").value = "";
+  document.getElementById("cliValor").value = "";
+
+  salvarDados();
+  atualizarTela();
+  mostrarToast("Compra registrada com sucesso!");
+}
+
+function fecharFolhaManual() {
+  const funcionarioId = Number(document.getElementById("folhaFuncId").value);
+  const he = Number(document.getElementById("folhaHE").value) || 0;
+  const desc = Number(document.getElementById("folhaDesc").value) || 0;
+  const adic = Number(document.getElementById("folhaAdic").value) || 0;
+  const mesReferencia = document.getElementById("folhaMes").value;
+
+  const func = estado.funcionarios.find(f => Number(f.id) === funcionarioId);
+
+  if (!func) {
+    mostrarToast("Selecione um funcionário.", "erro");
+    return;
+  }
+
+  if (!mesReferencia) {
+    mostrarToast("Informe o mês da folha.", "erro");
+    return;
+  }
+
+  const salarioLiquido = (Number(func.salarioBase) + adic + (he * 20)) - desc;
+
+  estado.folhas.push({
+    funcionarioId: func.id,
+    nome: func.nome,
+    mesReferencia,
+    salarioLiquido
+  });
+
+  document.getElementById("folhaHE").value = "";
+  document.getElementById("folhaDesc").value = "";
+  document.getElementById("folhaAdic").value = "";
+
+  salvarDados();
+  atualizarTela();
+  mostrarToast("Folha processada com sucesso!");
+}
+
+function adicionarDespesaManual() {
+  const categoria = document.getElementById("respCategoria").value.trim();
+  const valor = Number(document.getElementById("respValor").value);
+  const mesReferencia = document.getElementById("respMes").value;
+
+  if (!categoria || !valor || valor <= 0 || !mesReferencia) {
+    mostrarToast("Preencha categoria, valor e mês.", "erro");
+    return;
+  }
+
+  estado.transacoes.push({
+    tipo: "DESPESA",
+    categoria,
+    valor,
+    mesReferencia
+  });
+
+  document.getElementById("respCategoria").value = "";
+  document.getElementById("respValor").value = "";
+
+  salvarDados();
+  atualizarTela();
+  mostrarToast("Despesa adicionada com sucesso!");
+}
+
+function atualizarSelectFuncionarios() {
+  const select = document.getElementById("folhaFuncId");
+  const valorAtual = select.value;
+
+  select.innerHTML = '<option value="">Selecione o funcionário</option>';
+
+  estado.funcionarios.forEach(func => {
+    const option = document.createElement("option");
+    option.value = func.id;
+    option.textContent = `${func.nome} — ${func.cargo}`;
+    select.appendChild(option);
+  });
+
+  if (estado.funcionarios.some(f => String(f.id) === valorAtual)) {
+    select.value = valorAtual;
+  }
+}
+
+function renderizarListas() {
+  const mesRef = document.getElementById("mesRelatorio").value;
+
+  const listaClientes = document.getElementById("listaClientesRelatorio");
+  const clientes = estado.clientes.filter(c => c.mesReferencia === mesRef);
+
+  listaClientes.innerHTML = clientes.length
+    ? clientes.map(c => `
+      <div class="border rounded-xl p-3 flex justify-between gap-3">
+        <div>
+          <p class="font-bold">${escapeHTML(c.nomeCliente)}</p>
+          <p class="text-sm text-slate-500">${escapeHTML(c.itemComprado)}</p>
+        </div>
+        <p class="font-bold text-emerald-700 whitespace-nowrap">${formatarMoeda(c.valorGasto)}</p>
+      </div>
+    `).join("")
+    : `<p class="text-slate-500">Nenhuma receita neste mês.</p>`;
+
+  const listaFuncionarios = document.getElementById("listaFuncionarios");
+
+  listaFuncionarios.innerHTML = estado.funcionarios.length
+    ? estado.funcionarios.map(f => `
+      <div class="border rounded-xl p-3">
+        <p class="font-bold">${escapeHTML(f.nome)}</p>
+        <p class="text-sm text-slate-500">${escapeHTML(f.cargo)}</p>
+        <p class="font-semibold mt-1">${formatarMoeda(f.salarioBase)}</p>
+      </div>
+    `).join("")
+    : `<p class="text-slate-500">Nenhum funcionário cadastrado.</p>`;
+
+  const listaFolhas = document.getElementById("listaFolhasDespesas");
+
+  const folhas = estado.folhas.filter(f => f.mesReferencia === mesRef);
+  const despesas = estado.transacoes.filter(t => t.mesReferencia === mesRef);
+  const partes = [];
+
+  folhas.forEach(f => {
+    partes.push(`
+      <div class="border rounded-xl p-3">
+        <p class="font-bold">${escapeHTML(f.nome)}</p>
+        <p class="text-sm text-slate-500">Folha</p>
+        <p class="font-semibold text-red-700">${formatarMoeda(f.salarioLiquido)}</p>
+      </div>
+    `);
+  });
+
+  despesas.forEach(d => {
+    partes.push(`
+      <div class="border rounded-xl p-3">
+        <p class="font-bold">${escapeHTML(d.categoria)}</p>
+        <p class="text-sm text-slate-500">Despesa</p>
+        <p class="font-semibold text-red-700">${formatarMoeda(d.valor)}</p>
+      </div>
+    `);
+  });
+
+  listaFolhas.innerHTML = partes.length
+    ? partes.join("")
+    : `<p class="text-slate-500">Nenhuma folha ou despesa neste mês.</p>`;
+}
+
+function calcularFechamento() {
+  const mesRef = document.getElementById("mesRelatorio").value;
+
+  document.getElementById("labelMesRef").textContent = mesRef || "—";
+
+  const receitas = estado.clientes
+    .filter(c => c.mesReferencia === mesRef)
+    .reduce((total, c) => total + Number(c.valorGasto || 0), 0);
+
+  const gastosFolha = estado.folhas
+    .filter(f => f.mesReferencia === mesRef)
+    .reduce((total, f) => total + Number(f.salarioLiquido || 0), 0);
+
+  const outrasDespesas = estado.transacoes
+    .filter(t => t.tipo === "DESPESA" && t.mesReferencia === mesRef)
+    .reduce((total, t) => total + Number(t.valor || 0), 0);
+
+  const gastos = gastosFolha + outrasDespesas;
+  const lucro = receitas - gastos;
+
+  document.getElementById("resTotalReceitas").textContent = formatarMoeda(receitas);
+  document.getElementById("resTotalGastos").textContent = formatarMoeda(gastos);
+  document.getElementById("resLucroLiquido").textContent = formatarMoeda(lucro);
+
+  renderizarListas();
+}
+
+function atualizarTela() {
+  atualizarSelectFuncionarios();
+  calcularFechamento();
+}
+
+function carregarDadosExemplo(confirmar = true) {
+  if (
+    confirmar &&
+    (
+      estado.funcionarios.length ||
+      estado.clientes.length ||
+      estado.folhas.length ||
+      estado.transacoes.length
+    )
+  ) {
+    if (!confirm("Isso vai substituir os dados atuais pelo exemplo padrão. Continuar?")) {
+      return;
+    }
+  }
+
+  estado = {
+    funcionarios: [
+      {
+        id: 1,
+        nome: "Carlos Silva",
+        cargo: "Operador de Caixa",
+        salarioBase: 2000.00
+      }
+    ],
+
+    clientes: [
+      {
+        nomeCliente: "Pedro",
+        itemComprado: "Licença Software Pro",
+        valorGasto: 2000.00,
+        mesReferencia: "2026-06"
+      },
+      {
+        nomeCliente: "Mateus",
+        itemComprado: "Kit Hardware Corporativo",
+        valorGasto: 1800.00,
+        mesReferencia: "2026-06"
+      },
+      {
+        nomeCliente: "Felipe",
+        itemComprado: "Consultoria Avançada de TI",
+        valorGasto: 1500.00,
+        mesReferencia: "2026-06"
+      },
+      {
+        nomeCliente: "Alice",
+        itemComprado: "Pacote de Treinamento Equipe",
+        valorGasto: 1750.00,
+        mesReferencia: "2026-06"
+      },
+      {
+        nomeCliente: "Rodrigo",
+        itemComprado: "Manutenção Preventiva Servidores",
+        valorGasto: 1300.00,
+        mesReferencia: "2026-06"
+      }
+    ],
+
+    folhas: [
+      {
+        funcionarioId: 1,
+        nome: "Carlos Silva",
+        mesReferencia: "2026-06",
+        salarioLiquido: 2150.00
+      }
+    ],
+
+    transacoes: [
+      {
+        tipo: "DESPESA",
+        categoria: "Aluguel do Espaço",
+        valor: 1200.00,
+        mesReferencia: "2026-06"
+      }
+    ]
+  };
+
+  document.getElementById("cliMes").value = "2026-06";
+  document.getElementById("folhaMes").value = "2026-06";
+  document.getElementById("respMes").value = "2026-06";
+  document.getElementById("mesRelatorio").value = "2026-06";
+
+  salvarDados();
+  atualizarTela();
+
+  if (confirmar) {
+    mostrarToast("Exemplo padrão carregado!");
+  }
+}
+
+function limparTudo() {
+  if (!confirm("Tem certeza que deseja apagar todos os dados salvos?")) {
+    return;
+  }
+
+  estado = {
+    funcionarios: [],
+    clientes: [],
+    folhas: [],
+    transacoes: []
+  };
+
+  localStorage.removeItem(CHAVE_STORAGE);
+  atualizarTela();
+  mostrarToast("Todos os dados foram apagados.");
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  const existeDados = carregarDadosSalvos();
+
+  if (!existeDados) {
+    carregarDadosExemplo(false);
+  } else {
+    atualizarTela();
+  }
+});
+</script>
+
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(console.error));
+}
+</script>
+</body>
+</html>
